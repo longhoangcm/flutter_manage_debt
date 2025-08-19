@@ -24,6 +24,10 @@ class DBHelper {
     await _peopleBox!.add(person);
   }
 
+  Future<void> deletePerson(int index) async {
+    await _peopleBox!.deleteAt(index);
+  }
+
   List<PersonDebt> getAllPeople() {
     return _peopleBox!.values.toList();
   }
@@ -33,6 +37,14 @@ class DBHelper {
     if (person != null) {
       person.debts.add(entry);
       await person.save(); // vì PersonDebt là HiveObject
+    }
+  }
+
+  Future<void> deleteDebt(int personIndex, int debtIndex) async {
+    final person = _peopleBox!.getAt(personIndex);
+    if (person != null) {
+      person.debts.removeAt(debtIndex);
+      await person.save();
     }
   }
 }

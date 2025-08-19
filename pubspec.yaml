@@ -92,5 +92,5 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
-dependency_overrides:
-  analyzer: ^6.7.0
+#dependency_overrides:
+#  analyzer: ^6.7.0

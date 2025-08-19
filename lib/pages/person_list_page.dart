@@ -73,6 +73,10 @@ class _PersonListPageState extends State<PersonListPage> {
                       ),
                     );
                   },
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => db.deletePerson(index),
+                  ),
                 ),
               );
             },

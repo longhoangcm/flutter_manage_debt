@@ -87,12 +87,37 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
                   DataColumn(label: Text("Ngày")),
                   DataColumn(label: Text("Nội dung")),
                   DataColumn(label: Text("Số tiền")),
+                  DataColumn(label: Text("Xóa")), // 👈 thêm cột nút xoá
                 ],
-                rows: debts.map((d) {
+                // rows: debts.map((d) {
+                //   return DataRow(cells: [
+                //     DataCell(Text("${d.date.day}/${d.date.month}/${d.date.year}")),
+                //     DataCell(Text(d.description)),
+                //     DataCell(Text("${d.amount.toStringAsFixed(0)} đ")),
+                //   ]);
+                // }).toList(),
+                rows: debts.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final d = entry.value;
+
                   return DataRow(cells: [
                     DataCell(Text("${d.date.day}/${d.date.month}/${d.date.year}")),
                     DataCell(Text(d.description)),
                     DataCell(Text("${d.amount.toStringAsFixed(0)} đ")),
+                    DataCell(
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () async {
+                          // gọi xoá trong Hive hoặc List
+                          setState(() {
+                            debts.removeAt(index); // xoá khỏi danh sách
+                          });
+
+                          // nếu có DBHelper thì gọi xoá trong Hive nữa
+                          await db.deleteDebt(widget.person as int , index);
+                        },
+                      ),
+                    ),
                   ]);
                 }).toList(),
               ),
