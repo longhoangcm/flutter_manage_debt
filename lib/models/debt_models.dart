@@ -1,6 +1,16 @@
-class DebtEntry {
+import 'package:hive/hive.dart';
+
+part 'debt_models.g.dart'; // file này sẽ được tạo bởi build_runner
+
+@HiveType(typeId: 0)
+class DebtEntry extends HiveObject {
+  @HiveField(0)
   DateTime date;
+
+  @HiveField(1)
   String description;
+
+  @HiveField(2)
   double amount;
 
   DebtEntry({
@@ -10,16 +20,21 @@ class DebtEntry {
   });
 }
 
-class PersonDebt {
-  int? id; // thêm id để quản lý trong DB
+@HiveType(typeId: 1)
+class PersonDebt extends HiveObject {
+  @HiveField(0)
   String name;
+
+  @HiveField(1)
   List<DebtEntry> debts;
 
   PersonDebt({
-    this.id,
     required this.name,
     required this.debts,
   });
 
-  double get totalDebt => debts.fold(0, (sum, e) => sum + e.amount);
+  // ✅ Getter tính tổng nợ
+  double get totalDebt {
+    return debts.fold(0, (sum, d) => sum + d.amount);
+  }
 }

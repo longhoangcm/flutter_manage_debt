@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'models/debt_models.dart';
+import 'db/db_helper.dart';
 import 'pages/person_list_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Hive.initFlutter();
+
+  Hive.registerAdapter(DebtEntryAdapter());
+  Hive.registerAdapter(PersonDebtAdapter());
+
+  await DBHelper().init();
+
   runApp(DebtApp());
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../models/debt_models.dart';
 import 'person_detail_page.dart';
 import '../db/db_helper.dart';
@@ -9,21 +10,7 @@ class PersonListPage extends StatefulWidget {
 }
 
 class _PersonListPageState extends State<PersonListPage> {
-  List<PersonDebt> people = [];
   final db = DBHelper();
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  void _loadData() async {
-    var data = await db.getAllPeople();
-    setState(() {
-      people = data;
-    });
-  }
 
   void _addPerson() {
     TextEditingController nameController = TextEditingController();
@@ -39,8 +26,9 @@ class _PersonListPageState extends State<PersonListPage> {
           TextButton(
             onPressed: () async {
               if (nameController.text.isNotEmpty) {
-                await db.insertPerson(nameController.text);
-                _loadData();
+                final box = db.getPeopleBox();
+                final person = PersonDebt(name: nameController.text, debts: []);
+                await box.add(person); // thêm vào Hive
               }
               Navigator.pop(context);
             },
@@ -53,28 +41,41 @@ class _PersonListPageState extends State<PersonListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final box = db.getPeopleBox();
+
     return Scaffold(
       appBar: AppBar(title: Text("Danh sách người nợ")),
-      body: ListView.builder(
-        itemCount: people.length,
-        itemBuilder: (context, index) {
-          var person = people[index];
-          return Card(
-            child: ListTile(
-              title: Text(person.name),
-              subtitle: Text("Tổng nợ: ${person.totalDebt.toStringAsFixed(0)} đ"),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => PersonDetailPage(
-                      person: person,
-                      onUpdate: _loadData,
-                    ),
-                  ),
-                );
-              },
-            ),
+      body: ValueListenableBuilder(
+        valueListenable: box.listenable(),
+        builder: (context, Box<PersonDebt> box, _) {
+          final people = box.values.toList();
+
+          if (people.isEmpty) {
+            return Center(child: Text("Chưa có dữ liệu"));
+          }
+
+          return ListView.builder(
+            itemCount: people.length,
+            itemBuilder: (context, index) {
+              var person = people[index];
+              return Card(
+                child: ListTile(
+                  title: Text(person.name),
+                  subtitle: Text("Tổng nợ: ${person.totalDebt.toStringAsFixed(0)} đ"),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PersonDetailPage(
+                          person: person,
+                          onUpdate: () => setState(() {}),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
           );
         },
       ),

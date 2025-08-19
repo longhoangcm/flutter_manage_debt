@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import '../models/debt_models.dart';
 import '../db/db_helper.dart';
 
@@ -40,19 +41,26 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
         actions: [
           TextButton(
             onPressed: () async {
-              if (descController.text.isNotEmpty && amountController.text.isNotEmpty) {
+              if (descController.text.isNotEmpty &&
+                  amountController.text.isNotEmpty) {
                 double amount = double.tryParse(amountController.text) ?? 0;
+
                 var entry = DebtEntry(
                   date: DateTime.now(),
                   description: descController.text,
                   amount: amount,
                 );
-                await db.insertDebt(widget.person.id!, entry);
+
+                // Thêm vào person hiện tại
+                widget.person.debts.add(entry);
+
+                // Lưu lại vào Hive
+                final box = db.getPeopleBox();
+                await box.put(widget.person.key, widget.person);
+
                 widget.onUpdate();
                 Navigator.pop(context);
-                setState(() {
-                  widget.person.debts.add(entry);
-                });
+                setState(() {}); // refresh UI
               }
             },
             child: Text("Lưu"),
@@ -72,19 +80,22 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
       body: Column(
         children: [
           Expanded(
-            child: DataTable(
-              columns: const [
-                DataColumn(label: Text("Ngày")),
-                DataColumn(label: Text("Nội dung")),
-                DataColumn(label: Text("Số tiền")),
-              ],
-              rows: debts.map((d) {
-                return DataRow(cells: [
-                  DataCell(Text("${d.date.day}/${d.date.month}/${d.date.year}")),
-                  DataCell(Text(d.description)),
-                  DataCell(Text("${d.amount.toStringAsFixed(0)} đ")),
-                ]);
-              }).toList(),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columns: const [
+                  DataColumn(label: Text("Ngày")),
+                  DataColumn(label: Text("Nội dung")),
+                  DataColumn(label: Text("Số tiền")),
+                ],
+                rows: debts.map((d) {
+                  return DataRow(cells: [
+                    DataCell(Text("${d.date.day}/${d.date.month}/${d.date.year}")),
+                    DataCell(Text(d.description)),
+                    DataCell(Text("${d.amount.toStringAsFixed(0)} đ")),
+                  ]);
+                }).toList(),
+              ),
             ),
           ),
           Padding(
