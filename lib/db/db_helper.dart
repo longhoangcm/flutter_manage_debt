@@ -40,11 +40,23 @@ class DBHelper {
     }
   }
 
-  Future<void> deleteDebt(int personIndex, int debtIndex) async {
+   Future<void> deleteDebt(int personIndex, int debtIndex) async {
     final person = _peopleBox!.getAt(personIndex);
+
     if (person != null) {
-      person.debts.removeAt(debtIndex);
-      await person.save();
+      final debts = List<DebtEntry>.from(person.debts); // clone list cũ
+      debts.removeAt(debtIndex); // xoá
+
+      final updatedPerson = PersonDebt(
+        name: person.name,
+        debts: debts,
+      );
+
+      await _peopleBox!.putAt(personIndex, updatedPerson); // ghi đè lại Person
     }
+  }
+
+  PersonDebt? getPerson(int index) {
+    return _peopleBox!.getAt(index);
   }
 }

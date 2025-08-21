@@ -6,8 +6,9 @@ import '../db/db_helper.dart';
 class PersonDetailPage extends StatefulWidget {
   final PersonDebt person;
   final VoidCallback onUpdate;
+  final int personIndex;
 
-  PersonDetailPage({required this.person, required this.onUpdate});
+  PersonDetailPage({required this.person, required this.onUpdate, required this.personIndex});
 
   @override
   State<PersonDetailPage> createState() => _PersonDetailPageState();
@@ -87,7 +88,7 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
                   DataColumn(label: Text("Ngày")),
                   DataColumn(label: Text("Nội dung")),
                   DataColumn(label: Text("Số tiền")),
-                  DataColumn(label: Text("Xóa")), // 👈 thêm cột nút xoá
+                  // DataColumn(label: Text("Xóa")), // 👈 thêm cột nút xoá
                 ],
                 // rows: debts.map((d) {
                 //   return DataRow(cells: [
@@ -96,29 +97,64 @@ class _PersonDetailPageState extends State<PersonDetailPage> {
                 //     DataCell(Text("${d.amount.toStringAsFixed(0)} đ")),
                 //   ]);
                 // }).toList(),
-                rows: debts.asMap().entries.map((entry) {
+                rows: debts
+                    .asMap()
+                    .entries
+                    .map((entry) {
                   final index = entry.key;
                   final d = entry.value;
 
-                  return DataRow(cells: [
-                    DataCell(Text("${d.date.day}/${d.date.month}/${d.date.year}")),
-                    DataCell(Text(d.description)),
-                    DataCell(Text("${d.amount.toStringAsFixed(0)} đ")),
-                    DataCell(
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () async {
-                          // gọi xoá trong Hive hoặc List
-                          setState(() {
-                            debts.removeAt(index); // xoá khỏi danh sách
-                          });
+                  return DataRow(
+                    onLongPress: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) =>
+                          AlertDialog(
+                            title: Text("Xóa nợ này?"),
+                            content: Text(
+                                "Bạn có chắc muốn xóa khoản nợ: ${d
+                                    .description}?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: Text("Hủy"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: Text("Xóa"),
+                              ),
+                            ],
+                          ),
+                      );
+                      if (confirm == true) {
+                        await db.deleteDebt(widget.personIndex, index);
 
-                          // nếu có DBHelper thì gọi xoá trong Hive nữa
-                          await db.deleteDebt(widget.person as int , index);
-                        },
-                      ),
-                    ),
-                  ]);
+                        setState(() {
+                          // debts = db.getPerson(widget.personIndex)?.debts ?? [];
+                          debts.removeAt(index);
+                        });
+
+                      }
+                    },
+                    cells: [
+                      DataCell(Text("${d.date.day}/${d.date.month}/${d.date.year}")),
+                      DataCell(Text(d.description)),
+                      DataCell(Text("${d.amount.toStringAsFixed(0)} đ")),
+                      // DataCell(
+                      //   IconButton(
+                      //     icon: const Icon(Icons.delete, color: Colors.red),
+                      //     onPressed: () async {
+                      //       // gọi xoá trong Hive hoặc List
+                      //       setState(() {
+                      //         debts.removeAt(index); // xoá khỏi danh sách
+                      //       });
+                      //
+                      //       // nếu có DBHelper thì gọi xoá trong Hive nữa
+                      //       await db.deleteDebt(widget.person as int , index);
+                      //     },
+                      //   ),
+                      // ),
+                    ]);
                 }).toList(),
               ),
             ),

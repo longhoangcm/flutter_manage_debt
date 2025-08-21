@@ -67,6 +67,7 @@ class _PersonListPageState extends State<PersonListPage> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => PersonDetailPage(
+                          personIndex: index,
                           person: person,
                           onUpdate: () => setState(() {}),
                         ),
