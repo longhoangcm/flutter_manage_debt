@@ -74,10 +74,34 @@ class _PersonListPageState extends State<PersonListPage> {
                       ),
                     );
                   },
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => db.deletePerson(index),
-                  ),
+                  // trailing: IconButton(
+                  //   icon: const Icon(Icons.delete, color: Colors.red),
+                  //   onPressed:
+                  onLongPress: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) =>
+                        AlertDialog(
+                          title: Text("Xóa nợ này?"),
+                          content: Text(
+                              "Bạn có chắc muốn xóa đối tượng: ${person.name}?"),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: Text("Hủy"),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              child: Text("Xóa"),
+                            ),
+                          ],
+                        ),
+                    );
+                    if (confirm == true) {
+                      await db.deletePerson(index);
+                    }
+                  },
+                  // ),
                 ),
               );
             },
